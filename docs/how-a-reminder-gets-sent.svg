@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1140" width="1000" height="1140" role="img" aria-label="Aggie Reminder: how a reminder gets sent, along two independent paths. Path 1, the Express web app, which needs the server, a Postgres-backed login for the form page, and a SendGrid key: the admin's index.html form posts JSON subject, message and recipients to POST /send-custom-reminders on the Express server (port 3000). The handler first calls readExcelData(filePath, 1) on every send; the 1 is ignored and sheet 0 (Schedule) of Test Calendar 2024.xlsx is read from a hardcoded C:\Users\minhk path. If the read fails, the error is rethrown, the route has no catch, and Express answers 500, so nothing is sent and the admin's alert shows the error page. Otherwise, if recipients is exactly 'all', each row's item.email is used, but the header is 'Email', so every address is undefined; else the comma list is split and trimmed, the only branch with real addresses. forEach calls sendReminderEmail, one un-awaited sgMail.send per address from aggiehouseschedules@gmail.com (API key empty until edited in source), and the server responds 'Emails sent successfully' immediately, before any send settles, which the browser shows in an alert. Each send later either resolves, logging 'Email sent successfully to' and going on to the volunteer inbox, or rejects into console.error only, so the admin is never told; every 'all' send is rejected locally with no API call. Path 2, the Google Apps Script, needs no server: a time-driven Day timer (or a manual run in the editor) calls senderEmail() in Code.gs, which reads every row of Google Sheet 'Sheet1' (Shift, Date, Volunteers, Email...) and drops the header. For each row it computes the days until the shift from column B, both dates at midnight, diff = round((date - today) / 86,400,000); if diff is at most 2, with no lower bound so past dates match on every run, MailApp.sendEmail mails each cell from column D onward with subject 'AggieHouse Reminder', otherwise the row is skipped. Both paths end in the volunteers' inboxes and share no code.">
+  <style>
+    .bg{fill:#ffffff}
+    .title{fill:#1f2328;font:600 22px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .sub{fill:#59636e;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .lbl{fill:#1f2328;font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .note{fill:#59636e;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .glbl{fill:#59636e;font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:.06em}
+    .elbl{fill:#59636e;font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .edge{stroke:#818b98;stroke-width:1.6;fill:none}
+    .edge-dash{stroke:#818b98;stroke-width:1.6;fill:none;stroke-dasharray:6 4}
+    .arrow{fill:#818b98}
+    .group{fill:none;stroke:#d1d9e0;stroke-width:1.2;stroke-dasharray:4 4}
+    .b-blue{fill:#ddf4ff;stroke:#54aeff;stroke-width:1.5}
+    .b-green{fill:#dafbe1;stroke:#4ac26b;stroke-width:1.5}
+    .b-purple{fill:#fbefff;stroke:#c297ff;stroke-width:1.5}
+    .b-orange{fill:#fff1e5;stroke:#fb8f44;stroke-width:1.5}
+    .b-gray{fill:#f6f8fa;stroke:#d1d9e0;stroke-width:1.5}
+    .b-red{fill:#ffebe9;stroke:#ff8182;stroke-width:1.5}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#0d1117}
+      .title,.lbl{fill:#e6edf3}
+      .sub,.note,.glbl,.elbl{fill:#9198a1}
+      .edge,.edge-dash{stroke:#9198a1}
+      .arrow{fill:#9198a1}
+      .group{stroke:#3d444d}
+      .b-blue{fill:#0c2d6b;stroke:#4493f8}
+      .b-green{fill:#0f3b1e;stroke:#3fb950}
+      .b-purple{fill:#2e1a4f;stroke:#ab7df8}
+      .b-orange{fill:#3d1f0a;stroke:#f0883e}
+      .b-gray{fill:#151b23;stroke:#3d444d}
+      .b-red{fill:#3c1618;stroke:#f85149}
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrow" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1000" height="1140" rx="12"/>
+  <text class="title" x="32" y="48">Aggie Reminder — how a reminder gets sent</text>
+  <text class="sub" x="32" y="74">Two independent paths: the Express app’s custom reminders (left) and the Apps Script daily trigger (right).</text>
+
+  <!-- ===================== PATH 1: Express web app ===================== -->
+  <rect class="group" x="20" y="92" width="570" height="928" rx="12"/>
+  <text class="glbl" x="36" y="114">PATH 1 — EXPRESS WEB APP</text>
+  <text class="glbl" x="36" y="130">hackdavis2024/ · needs the server, a login (Postgres), a SendGrid key</text>
+
+  <!-- admin browser -->
+  <rect class="b-blue" x="36" y="146" width="270" height="72" rx="10"/>
+  <text class="lbl" x="171" y="169" text-anchor="middle">Admin browser — index.html</text>
+  <text class="note" x="171" y="187" text-anchor="middle">reminder form, sent by scripts.js fetch()</text>
+  <text class="note" x="171" y="204" text-anchor="middle">recipients: a comma list or 'all'</text>
+
+  <path class="edge" d="M171,218 V264" marker-end="url(#ah)"/>
+  <text class="elbl" x="181" y="238">POST /send-custom-reminders</text>
+  <text class="elbl" x="181" y="252">JSON {subject, message, recipients}</text>
+
+  <!-- express server -->
+  <rect class="b-green" x="36" y="268" width="270" height="56" rx="10"/>
+  <text class="lbl" x="171" y="291" text-anchor="middle">Express server, port 3000</text>
+  <text class="note" x="171" y="309" text-anchor="middle">server.js — app.post handler</text>
+
+  <path class="edge" d="M171,324 V344" marker-end="url(#ah)"/>
+
+  <!-- workbook read: before the branch -->
+  <rect class="b-green" x="36" y="348" width="270" height="72" rx="10"/>
+  <text class="lbl" x="171" y="371" text-anchor="middle">readExcelData(filePath, 1)</text>
+  <text class="note" x="171" y="389" text-anchor="middle">runs first, on every send</text>
+  <text class="note" x="171" y="406" text-anchor="middle">the 1 is ignored: reads sheet 0 only</text>
+
+  <rect class="b-gray" x="334" y="348" width="240" height="72" rx="10"/>
+  <text class="lbl" x="454" y="371" text-anchor="middle">Test Calendar 2024.xlsx</text>
+  <text class="note" x="454" y="389" text-anchor="middle">sheet 0 = 'Schedule', header 'Email'</text>
+  <text class="note" x="454" y="406" text-anchor="middle">path hardcoded: C:\Users\minhk\…</text>
+  <path class="edge" d="M334,384 H310" marker-end="url(#ah)"/>
+
+  <path class="edge" d="M171,420 V440" marker-end="url(#ah)"/>
+
+  <!-- decision: read ok? -->
+  <polygon class="b-gray" points="171,444 281,474 171,504 61,474"/>
+  <text class="lbl" x="171" y="479" text-anchor="middle">workbook readable?</text>
+  <path class="edge" d="M281,474 H330" marker-end="url(#ah)"/>
+  <text class="elbl" x="307" y="466" text-anchor="middle">no</text>
+
+  <rect class="b-red" x="334" y="438" width="240" height="72" rx="10"/>
+  <text class="lbl" x="454" y="461" text-anchor="middle">Express 500 — nothing sent</text>
+  <text class="note" x="454" y="479" text-anchor="middle">rethrown; the route has no catch</text>
+  <text class="note" x="454" y="496" text-anchor="middle">alert() shows the error page text</text>
+
+  <path class="edge" d="M171,504 V528" marker-end="url(#ah)"/>
+  <text class="elbl" x="181" y="520">yes</text>
+
+  <!-- decision: 'all'? -->
+  <polygon class="b-gray" points="171,532 291,562 171,592 51,562"/>
+  <text class="lbl" x="171" y="567" text-anchor="middle">recipients === 'all'?</text>
+  <path class="edge" d="M291,562 H330" marker-end="url(#ah)"/>
+  <text class="elbl" x="311" y="554" text-anchor="middle">yes</text>
+
+  <rect class="b-red" x="334" y="526" width="240" height="72" rx="10"/>
+  <text class="lbl" x="454" y="549" text-anchor="middle">'all' → item.email per row</text>
+  <text class="note" x="454" y="567" text-anchor="middle">the header is 'Email', not 'email'</text>
+  <text class="note" x="454" y="584" text-anchor="middle">so every address is undefined</text>
+
+  <path class="edge" d="M171,592 V616" marker-end="url(#ah)"/>
+  <text class="elbl" x="181" y="608">no</text>
+
+  <rect class="b-green" x="36" y="620" width="270" height="56" rx="10"/>
+  <text class="lbl" x="171" y="643" text-anchor="middle">split(',') + trim</text>
+  <text class="note" x="171" y="661" text-anchor="middle">the only branch with real addresses</text>
+
+  <!-- merge into the send loop -->
+  <path class="edge" d="M454,598 V692 H276 V706" marker-end="url(#ah)"/>
+  <path class="edge" d="M171,676 V706" marker-end="url(#ah)"/>
+
+  <rect class="b-green" x="36" y="710" width="270" height="72" rx="10"/>
+  <text class="lbl" x="171" y="733" text-anchor="middle">forEach → sendReminderEmail()</text>
+  <text class="note" x="171" y="751" text-anchor="middle">one sgMail.send per address</text>
+  <text class="note" x="171" y="768" text-anchor="middle">never awaited — fire and forget</text>
+
+  <path class="edge" d="M306,746 H330" marker-end="url(#ah)"/>
+  <rect class="b-green" x="334" y="710" width="240" height="72" rx="10"/>
+  <text class="lbl" x="454" y="733" text-anchor="middle">responds immediately</text>
+  <text class="note" x="454" y="751" text-anchor="middle">res.send('Emails sent successfully')</text>
+  <text class="note" x="454" y="768" text-anchor="middle">before any send settles → alert()</text>
+
+  <!-- async: each send settles later -->
+  <path class="edge-dash" d="M171,782 V826" marker-end="url(#ah)"/>
+  <text class="elbl" x="181" y="808">each send settles later</text>
+
+  <rect class="b-purple" x="36" y="830" width="270" height="72" rx="10"/>
+  <text class="lbl" x="171" y="853" text-anchor="middle">SendGrid — @sendgrid/mail</text>
+  <text class="note" x="171" y="871" text-anchor="middle">from aggiehouseschedules@gmail.com</text>
+  <text class="note" x="171" y="888" text-anchor="middle">API_KEY = '' until edited in source</text>
+
+  <path class="edge" d="M171,902 V922" marker-end="url(#ah)"/>
+
+  <polygon class="b-gray" points="171,926 271,956 171,986 71,956"/>
+  <text class="lbl" x="171" y="961" text-anchor="middle">send resolves?</text>
+  <path class="edge" d="M271,956 H330" marker-end="url(#ah)"/>
+  <text class="elbl" x="300" y="948" text-anchor="middle">no</text>
+
+  <rect class="b-red" x="334" y="920" width="240" height="72" rx="10"/>
+  <text class="lbl" x="454" y="943" text-anchor="middle">console.error only</text>
+  <text class="note" x="454" y="961" text-anchor="middle">the admin is never told</text>
+  <text class="note" x="454" y="978" text-anchor="middle">'all': rejected locally, no API call</text>
+
+  <path class="edge" d="M171,986 V1086 H346" marker-end="url(#ah)"/>
+  <text class="elbl" x="181" y="1006">yes — logs 'Email sent successfully to'</text>
+
+  <!-- ===================== PATH 2: Apps Script ===================== -->
+  <rect class="group" x="606" y="92" width="374" height="688" rx="12"/>
+  <text class="glbl" x="622" y="114">PATH 2 — GOOGLE APPS SCRIPT</text>
+  <text class="glbl" x="622" y="130">automated_reminder/ · no server needed</text>
+
+  <rect class="b-orange" x="638" y="146" width="270" height="72" rx="10"/>
+  <text class="lbl" x="773" y="169" text-anchor="middle">Time-driven trigger</text>
+  <text class="note" x="773" y="187" text-anchor="middle">Day timer, at an hour you pick</text>
+  <text class="note" x="773" y="204" text-anchor="middle">(or run by hand in the editor)</text>
+
+  <path class="edge" d="M773,218 V264" marker-end="url(#ah)"/>
+  <text class="elbl" x="783" y="245">calls</text>
+
+  <rect class="b-green" x="638" y="268" width="270" height="56" rx="10"/>
+  <text class="lbl" x="773" y="291" text-anchor="middle">senderEmail() in Code.gs</text>
+  <text class="note" x="773" y="309" text-anchor="middle">pasted from automated_reminder.txt</text>
+
+  <path class="edge" d="M773,324 V344" marker-end="url(#ah)"/>
+  <text class="elbl" x="783" y="338">reads</text>
+
+  <rect class="b-gray" x="638" y="348" width="270" height="72" rx="10"/>
+  <text class="lbl" x="773" y="371" text-anchor="middle">Google Sheet 'Sheet1'</text>
+  <text class="note" x="773" y="389" text-anchor="middle">Shift | Date | Volunteers | Email…</text>
+  <text class="note" x="773" y="406" text-anchor="middle">every row read; header row dropped</text>
+
+  <rect class="group" x="622" y="436" width="342" height="328" rx="12"/>
+  <text class="glbl" x="638" y="456">FOR EACH ROW</text>
+
+  <path class="edge" d="M773,420 V466" marker-end="url(#ah)"/>
+
+  <rect class="b-green" x="638" y="470" width="270" height="72" rx="10"/>
+  <text class="lbl" x="773" y="493" text-anchor="middle">days until the shift</text>
+  <text class="note" x="773" y="511" text-anchor="middle">column B date and today, at midnight</text>
+  <text class="note" x="773" y="528" text-anchor="middle">diff = round((date − today) / 86,400,000)</text>
+
+  <path class="edge" d="M773,542 V562" marker-end="url(#ah)"/>
+
+  <polygon class="b-gray" points="773,566 833,596 773,626 713,596"/>
+  <text class="lbl" x="773" y="601" text-anchor="middle">diff ≤ 2?</text>
+  <path class="edge" d="M833,596 H860" marker-end="url(#ah)"/>
+  <text class="elbl" x="846" y="588" text-anchor="middle">no</text>
+
+  <rect class="b-gray" x="864" y="568" width="84" height="56" rx="10"/>
+  <text class="lbl" x="906" y="591" text-anchor="middle">skip row</text>
+  <text class="note" x="906" y="609" text-anchor="middle">no email</text>
+
+  <path class="edge" d="M773,626 V668" marker-end="url(#ah)"/>
+  <text class="elbl" x="783" y="644">yes — no lower bound:</text>
+  <text class="elbl" x="783" y="658">past dates match on every run</text>
+
+  <rect class="b-purple" x="638" y="672" width="270" height="72" rx="10"/>
+  <text class="lbl" x="773" y="695" text-anchor="middle">MailApp.sendEmail per cell</text>
+  <text class="note" x="773" y="713" text-anchor="middle">each cell from column D on: slice(3)</text>
+  <text class="note" x="773" y="730" text-anchor="middle">subject 'AggieHouse Reminder'</text>
+
+  <path class="edge" d="M773,744 V1086 H654" marker-end="url(#ah)"/>
+
+  <!-- ===================== shared end ===================== -->
+  <rect class="b-blue" x="350" y="1058" width="300" height="56" rx="10"/>
+  <text class="lbl" x="500" y="1081" text-anchor="middle">volunteer inboxes</text>
+  <text class="note" x="500" y="1099" text-anchor="middle">both paths end here — they share no code</text>
+
+  <!-- ===================== legend ===================== -->
+  <text class="glbl" x="790" y="812">LEGEND</text>
+  <rect class="b-blue" x="790" y="826" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="837">people: admin, volunteers</text>
+  <rect class="b-green" x="790" y="848" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="859">code step</text>
+  <rect class="b-gray" x="790" y="870" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="881">data, decision or skip</text>
+  <rect class="b-purple" x="790" y="892" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="903">email service</text>
+  <rect class="b-orange" x="790" y="914" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="925">Google’s scheduler</text>
+  <rect class="b-red" x="790" y="936" width="26" height="14" rx="4"/>
+  <text class="note" x="828" y="947">failure or broken path</text>
+  <path class="edge" d="M790,965 H816" marker-end="url(#ah)"/>
+  <text class="note" x="828" y="969">control or data flow</text>
+  <path class="edge-dash" d="M790,987 H816" marker-end="url(#ah)"/>
+  <text class="note" x="828" y="991">runs later (async)</text>
+</svg>
