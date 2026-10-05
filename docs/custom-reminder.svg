@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1276" width="1000" height="1276" role="img" aria-label="Aggie Reminder, one custom reminder end to end: the admin's browser form posts subject, message and a comma-separated recipient list to the Express server on port 3000; before branching, the server synchronously reads the first sheet, Schedule, of Test Calendar 2024.xlsx (the sheet index 1 is ignored) and does not use the rows on this path; it splits the list, calls sgMail.send once per address from aggiehouseschedules@gmail.com without awaiting, and answers Emails sent successfully before any SendGrid reply; the browser alerts the response text without checking its status. Later each send either resolves into a console.log or rejects into a console.error that only the server console sees. Red notes: if the workbook read throws, Express returns its 500 page, the alert shows it and nothing is sent; if recipients were all, item.email misses the Email header and every send rejects.">
+  <style>
+    .bg{fill:#ffffff}
+    .title{fill:#1f2328;font:600 22px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .sub{fill:#59636e;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .lbl{fill:#1f2328;font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .note{fill:#59636e;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .glbl{fill:#59636e;font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:.06em}
+    .elbl{fill:#59636e;font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .edge{stroke:#818b98;stroke-width:1.6;fill:none}
+    .edge-dash{stroke:#818b98;stroke-width:1.6;fill:none;stroke-dasharray:6 4}
+    .arrow{fill:#818b98}
+    .group{fill:none;stroke:#d1d9e0;stroke-width:1.2;stroke-dasharray:4 4}
+    .b-blue{fill:#ddf4ff;stroke:#54aeff;stroke-width:1.5}
+    .b-green{fill:#dafbe1;stroke:#4ac26b;stroke-width:1.5}
+    .b-purple{fill:#fbefff;stroke:#c297ff;stroke-width:1.5}
+    .b-orange{fill:#fff1e5;stroke:#fb8f44;stroke-width:1.5}
+    .b-gray{fill:#f6f8fa;stroke:#d1d9e0;stroke-width:1.5}
+    .b-red{fill:#ffebe9;stroke:#ff8182;stroke-width:1.5}
+    .b-planned{fill:none;stroke:#818b98;stroke-width:1.4;stroke-dasharray:5 4}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .wire{stroke:#59636e;stroke-width:1.4;fill:none}
+    .dot{fill:#59636e}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#0d1117}
+      .title,.lbl{fill:#e6edf3}
+      .sub,.note,.glbl,.elbl{fill:#9198a1}
+      .edge,.edge-dash{stroke:#9198a1}
+      .arrow{fill:#9198a1}
+      .group{stroke:#3d444d}
+      .b-blue{fill:#0c2d6b;stroke:#4493f8}
+      .b-green{fill:#0f3b1e;stroke:#3fb950}
+      .b-purple{fill:#2e1a4f;stroke:#ab7df8}
+      .b-orange{fill:#3d1f0a;stroke:#f0883e}
+      .b-gray{fill:#151b23;stroke:#3d444d}
+      .b-red{fill:#3c1618;stroke:#f85149}
+      .b-planned{stroke:#9198a1}
+      .wire{stroke:#9198a1}
+      .dot{fill:#9198a1}
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrow" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1000" height="1276" rx="12"/>
+  <text class="title" x="32" y="48">Aggie Reminder — one custom reminder, end to end</text>
+  <text class="sub" x="32" y="74">The admin sends a subject and message to "a@x.com, b@y.com" (the comma-list path); steps run top to bottom.</text>
+
+  <!-- legend row 1: participant and box colours -->
+  <g>
+    <rect class="b-blue" x="32" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="50" y="98">browser</text>
+    <rect class="b-green" x="110" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="128" y="98">Express server</text>
+    <rect class="b-gray" x="226" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="244" y="98">roster file</text>
+    <rect class="b-purple" x="322" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="340" y="98">external service</text>
+    <rect class="b-planned" x="446" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="464" y="98">outside this repo</text>
+    <rect class="b-orange" x="574" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="592" y="98">note</text>
+    <rect class="b-red" x="632" y="88" width="12" height="12" rx="3"/>
+    <text class="elbl" x="650" y="98">failure path or branch not taken here</text>
+  </g>
+  <!-- legend row 2: arrow styles -->
+  <g>
+    <line class="edge" x1="32" y1="114" x2="62" y2="114" marker-end="url(#ah)"/>
+    <text class="elbl" x="70" y="118">call or request</text>
+    <line class="edge-dash" x1="160" y1="114" x2="190" y2="114" marker-end="url(#ah)"/>
+    <text class="elbl" x="198" y="118">reply, or a later promise callback</text>
+  </g>
+
+  <!-- participants + lifelines -->
+  <g>
+    <line class="group" x1="110" y1="194" x2="110" y2="1256"/>
+    <line class="group" x1="360" y1="194" x2="360" y2="1256"/>
+    <line class="group" x1="600" y1="194" x2="600" y2="1256"/>
+    <line class="group" x1="780" y1="194" x2="780" y2="1256"/>
+    <line class="group" x1="925" y1="194" x2="925" y2="1256"/>
+    <rect class="b-blue" x="30" y="136" width="160" height="58" rx="10"/>
+    <text class="lbl" x="110" y="160" text-anchor="middle">admin browser</text>
+    <text class="note" x="110" y="180" text-anchor="middle">index.html + scripts.js</text>
+    <rect class="b-green" x="280" y="136" width="160" height="58" rx="10"/>
+    <text class="lbl" x="360" y="160" text-anchor="middle">Express server</text>
+    <text class="note" x="360" y="180" text-anchor="middle">server.js, port 3000</text>
+    <rect class="b-gray" x="510" y="136" width="180" height="58" rx="10"/>
+    <text class="lbl" x="600" y="160" text-anchor="middle">roster workbook</text>
+    <text class="note" x="600" y="180" text-anchor="middle">Test Calendar 2024.xlsx</text>
+    <rect class="b-purple" x="715" y="136" width="130" height="58" rx="10"/>
+    <text class="lbl" x="780" y="160" text-anchor="middle">SendGrid</text>
+    <text class="note" x="780" y="180" text-anchor="middle">@sendgrid/mail</text>
+    <rect class="b-planned" x="858" y="136" width="134" height="58" rx="10"/>
+    <text class="lbl" x="925" y="160" text-anchor="middle">volunteer inbox</text>
+    <text class="note" x="925" y="180" text-anchor="middle">outside this repo</text>
+  </g>
+
+  <!-- fragment frames -->
+  <g>
+    <rect class="group" x="250" y="608" width="550" height="192" rx="8"/>
+    <rect class="b-gray" x="250" y="608" width="282" height="26" rx="8"/>
+    <text class="glbl" x="262" y="625">loop: forEach → sendReminderEmail</text>
+
+    <rect class="group" x="196" y="950" width="794" height="296" rx="8"/>
+    <line class="group" x1="196" y1="1100" x2="990" y2="1100"/>
+    <rect class="b-gray" x="196" y="950" width="300" height="26" rx="8"/>
+    <text class="glbl" x="208" y="967">later, once per send — after step 8</text>
+    <text class="glbl" x="208" y="998">[resolves]</text>
+    <text class="glbl" x="208" y="1122">[rejects]</text>
+  </g>
+
+  <!-- steps, top to bottom -->
+  <g>
+    <!-- step 1: submit handler -->
+    <rect class="b-orange" x="30" y="212" width="300" height="52" rx="8"/>
+    <circle class="b-blue" cx="52" cy="238" r="12"/>
+    <text class="lbl" x="52" y="243" text-anchor="middle">1</text>
+    <text class="note" x="74" y="234">submit → preventDefault(), then reads</text>
+    <text class="note" x="74" y="250">#subject, #message, #recipients</text>
+
+    <!-- step 2: POST -->
+    <line class="edge" x1="122" y1="326" x2="359" y2="326" marker-end="url(#ah)"/>
+    <circle class="b-blue" cx="110" cy="326" r="12"/>
+    <text class="lbl" x="110" y="331" text-anchor="middle">2</text>
+    <text class="note" x="238" y="294" text-anchor="middle">POST /send-custom-reminders</text>
+    <text class="note" x="238" y="310" text-anchor="middle">JSON {subject, message, recipients}</text>
+
+    <!-- step 3: read the workbook -->
+    <line class="edge" x1="372" y1="404" x2="599" y2="404" marker-end="url(#ah)"/>
+    <circle class="b-green" cx="360" cy="404" r="12"/>
+    <text class="lbl" x="360" y="409" text-anchor="middle">3</text>
+    <text class="note" x="486" y="372" text-anchor="middle">readExcelData(filePath, 1)</text>
+    <text class="note" x="486" y="388" text-anchor="middle">sync xlsx.readFile, before the branch</text>
+    <rect class="b-red" x="640" y="366" width="350" height="68" rx="8"/>
+    <text class="lbl" x="654" y="390">if the read throws</text>
+    <text class="note" x="654" y="410">e.g. filePath (line 10) unedited; route has no catch</text>
+    <text class="note" x="654" y="426">→ Express 500 page, step 9 alerts it; no sends</text>
+
+    <!-- step 4: rows come back -->
+    <line class="edge-dash" x1="588" y1="500" x2="361" y2="500" marker-end="url(#ah)"/>
+    <circle class="b-gray" cx="600" cy="500" r="12"/>
+    <text class="lbl" x="600" y="505" text-anchor="middle">4</text>
+    <text class="note" x="480" y="452" text-anchor="middle">79 'Schedule' rows as JSON</text>
+    <text class="note" x="480" y="468" text-anchor="middle">(SheetNames[0]: the 1 is ignored)</text>
+    <text class="note" x="480" y="484" text-anchor="middle">unused on this branch</text>
+
+    <!-- step 5: branch on recipients -->
+    <path class="edge" d="M372,540 H386 Q394,540 394,548 V554 Q394,562 386,562 H362" marker-end="url(#ah)"/>
+    <circle class="b-green" cx="360" cy="540" r="12"/>
+    <text class="lbl" x="360" y="545" text-anchor="middle">5</text>
+    <text class="note" x="404" y="543">recipients === 'all'? no →</text>
+    <text class="note" x="404" y="559">split(',') + trim →</text>
+    <text class="note" x="404" y="575">['a@x.com', 'b@y.com']</text>
+    <rect class="b-red" x="640" y="520" width="350" height="68" rx="8"/>
+    <text class="lbl" x="654" y="544">if recipients were 'all' (not this run)</text>
+    <text class="note" x="654" y="564">item.email misses the 'Email' header →</text>
+    <text class="note" x="654" y="580">79 × undefined; each send rejects locally (step 12)</text>
+
+    <!-- steps 6-7: one sgMail.send per address -->
+    <line class="edge" x1="372" y1="676" x2="779" y2="676" marker-end="url(#ah)"/>
+    <circle class="b-green" cx="360" cy="676" r="12"/>
+    <text class="lbl" x="360" y="681" text-anchor="middle">6</text>
+    <text class="note" x="486" y="666" text-anchor="middle">sgMail.send(msg) to 'a@x.com'</text>
+    <line class="edge" x1="372" y1="720" x2="779" y2="720" marker-end="url(#ah)"/>
+    <circle class="b-green" cx="360" cy="720" r="12"/>
+    <text class="lbl" x="360" y="725" text-anchor="middle">7</text>
+    <text class="note" x="486" y="710" text-anchor="middle">sgMail.send(msg) to 'b@y.com'</text>
+    <rect class="b-orange" x="380" y="738" width="410" height="50" rx="8"/>
+    <text class="note" x="394" y="759">msg = {to, from: 'aggiehouseschedules@gmail.com',</text>
+    <text class="note" x="394" y="775">subject, text: message} — promise never awaited</text>
+
+    <!-- step 8: response -->
+    <line class="edge-dash" x1="348" y1="856" x2="111" y2="856" marker-end="url(#ah)"/>
+    <circle class="b-green" cx="360" cy="856" r="12"/>
+    <text class="lbl" x="360" y="861" text-anchor="middle">8</text>
+    <text class="note" x="234" y="824" text-anchor="middle">res.send('Emails sent successfully')</text>
+    <text class="note" x="234" y="840" text-anchor="middle">before any SendGrid reply</text>
+
+    <!-- step 9: alert -->
+    <path class="edge" d="M122,896 H136 Q144,896 144,904 V910 Q144,918 136,918 H112" marker-end="url(#ah)"/>
+    <circle class="b-blue" cx="110" cy="896" r="12"/>
+    <text class="lbl" x="110" y="901" text-anchor="middle">9</text>
+    <text class="note" x="154" y="899">response.text() → alert(data)</text>
+    <text class="note" x="154" y="915">no response.ok check</text>
+
+    <!-- step 10: resolves -->
+    <line class="edge-dash" x1="768" y1="1030" x2="361" y2="1030" marker-end="url(#ah)"/>
+    <circle class="b-purple" cx="780" cy="1030" r="12"/>
+    <text class="lbl" x="780" y="1035" text-anchor="middle">10</text>
+    <text class="note" x="486" y="1004" text-anchor="middle">promise resolves → server logs</text>
+    <text class="note" x="486" y="1020" text-anchor="middle">'Email sent successfully to', to</text>
+
+    <!-- step 11: delivery -->
+    <line class="edge-dash" x1="792" y1="1080" x2="924" y2="1080" marker-end="url(#ah)"/>
+    <circle class="b-purple" cx="780" cy="1080" r="12"/>
+    <text class="lbl" x="780" y="1085" text-anchor="middle">11</text>
+    <text class="note" x="858" y="1056" text-anchor="middle">reminder delivered</text>
+    <text class="note" x="858" y="1072" text-anchor="middle">(not seen by code)</text>
+
+    <!-- step 12: rejects -->
+    <line class="edge-dash" x1="768" y1="1150" x2="361" y2="1150" marker-end="url(#ah)"/>
+    <circle class="b-red" cx="780" cy="1150" r="12"/>
+    <text class="lbl" x="780" y="1155" text-anchor="middle">12</text>
+    <text class="note" x="486" y="1124" text-anchor="middle">promise rejects → server logs</text>
+    <text class="note" x="486" y="1140" text-anchor="middle">'Error sending email:', error</text>
+    <rect class="b-red" x="208" y="1166" width="382" height="66" rx="8"/>
+    <text class="lbl" x="222" y="1189">server console only</text>
+    <text class="note" x="222" y="1208">the admin never learns: step 8 already said success</text>
+    <text class="note" x="222" y="1224">API_KEY is '' until edited (server.js line 18)</text>
+  </g>
+</svg>

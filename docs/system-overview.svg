@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 606" width="1000" height="606" role="img" aria-label="Aggie Reminder system overview. Two independent paths email volunteers; both read spreadsheet rows of shift, date, volunteers and emails, but they share no code. Express web app in hackdavis2024/: the login and register pages (form.js) POST to /login-user and /register-user and keep the logged-in name and email in sessionStorage; the dashboard, a shifts table plus a send form, GETs /api/shifts and POSTs /send-custom-reminders to the Express server (server.js, port 3000). The server inserts into and selects from a PostgreSQL users table through Knex and pg, for logins only; reads the first sheet of Test Calendar 2024.xlsx with xlsx.readFile on every call; and hands each address to SendGrid with sgMail.send without awaiting it, so the admin's subject and message go to the recipients typed into the form. Google Apps Script in automated_reminder/: a time-driven Day timer runs senderEmail() once a day; each run reads Sheet1 of a Google Sheet with getValues() and, for rows where date minus today is at most 2 days, calls MailApp sendEmail for every address from column D on, with the subject AggieHouse Reminder and a fixed text plus the shift date. Both paths end in the volunteers' inboxes, a separate email per address.">
+  <style>
+    .bg{fill:#ffffff}
+    .title{fill:#1f2328;font:600 22px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .sub{fill:#59636e;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .lbl{fill:#1f2328;font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .note{fill:#59636e;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .glbl{fill:#59636e;font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:.06em}
+    .elbl{fill:#59636e;font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .edge{stroke:#818b98;stroke-width:1.6;fill:none}
+    .edge-dash{stroke:#818b98;stroke-width:1.6;fill:none;stroke-dasharray:6 4}
+    .arrow{fill:#818b98}
+    .group{fill:none;stroke:#d1d9e0;stroke-width:1.2;stroke-dasharray:4 4}
+    .b-blue{fill:#ddf4ff;stroke:#54aeff;stroke-width:1.5}
+    .b-green{fill:#dafbe1;stroke:#4ac26b;stroke-width:1.5}
+    .b-purple{fill:#fbefff;stroke:#c297ff;stroke-width:1.5}
+    .b-orange{fill:#fff1e5;stroke:#fb8f44;stroke-width:1.5}
+    .b-gray{fill:#f6f8fa;stroke:#d1d9e0;stroke-width:1.5}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#0d1117}
+      .title,.lbl{fill:#e6edf3}
+      .sub,.note,.glbl,.elbl{fill:#9198a1}
+      .edge,.edge-dash{stroke:#9198a1}
+      .arrow{fill:#9198a1}
+      .group{stroke:#3d444d}
+      .b-blue{fill:#0c2d6b;stroke:#4493f8}
+      .b-green{fill:#0f3b1e;stroke:#3fb950}
+      .b-purple{fill:#2e1a4f;stroke:#ab7df8}
+      .b-orange{fill:#3d1f0a;stroke:#f0883e}
+      .b-gray{fill:#151b23;stroke:#3d444d}
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrow" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1000" height="606" rx="12"/>
+  <text class="title" x="32" y="48">Aggie Reminder — system overview</text>
+  <text class="sub" x="32" y="74">Two independent paths email volunteers; both read rows of shift, date, volunteers, emails, but share no code.</text>
+
+  <!-- ===== Path 1: Express web app (hackdavis2024/) ===== -->
+  <rect class="group" x="24" y="96" width="576" height="362" rx="12"/>
+  <text class="glbl" x="40" y="118">EXPRESS WEB APP · hackdavis2024/</text>
+
+  <!-- browser pages (public/) -->
+  <rect class="b-blue" x="40" y="134" width="170" height="60" rx="10"/>
+  <text class="lbl" x="125" y="160" text-anchor="middle">Login / register</text>
+  <text class="note" x="125" y="179" text-anchor="middle">form.js → sessionStorage</text>
+
+  <rect class="b-blue" x="414" y="134" width="170" height="60" rx="10"/>
+  <text class="lbl" x="499" y="160" text-anchor="middle">Dashboard</text>
+  <text class="note" x="499" y="179" text-anchor="middle">shifts table + send form</text>
+
+  <path class="edge" d="M125,194 V250" marker-end="url(#ah)"/>
+  <text class="elbl" x="133" y="219">POST /login-user</text>
+  <text class="elbl" x="133" y="233">POST /register-user</text>
+
+  <path class="edge" d="M499,194 V250" marker-end="url(#ah)"/>
+  <text class="elbl" x="491" y="219" text-anchor="end">GET /api/shifts</text>
+  <text class="elbl" x="491" y="233" text-anchor="end">POST /send-custom-reminders</text>
+
+  <!-- server -->
+  <rect class="b-green" x="88" y="254" width="448" height="64" rx="10"/>
+  <text class="lbl" x="312" y="281" text-anchor="middle">Express server</text>
+  <text class="note" x="312" y="301" text-anchor="middle">server.js · port 3000</text>
+
+  <!-- backing stores and mail API -->
+  <path class="edge" d="M125,322 V374" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="elbl" x="133" y="343">Knex + pg</text>
+  <text class="elbl" x="133" y="357">insert / select</text>
+
+  <path class="edge" d="M312,378 V322" marker-end="url(#ah)"/>
+  <text class="elbl" x="320" y="343">xlsx.readFile</text>
+  <text class="elbl" x="320" y="357">first sheet, per call</text>
+
+  <path class="edge" d="M499,318 V374" marker-end="url(#ah)"/>
+  <text class="elbl" x="507" y="343">sgMail.send</text>
+  <text class="elbl" x="507" y="357">not awaited</text>
+
+  <rect class="b-gray" x="40" y="378" width="170" height="60" rx="10"/>
+  <text class="lbl" x="125" y="404" text-anchor="middle">PostgreSQL</text>
+  <text class="note" x="125" y="423" text-anchor="middle">users table, logins only</text>
+
+  <rect class="b-gray" x="222" y="378" width="180" height="60" rx="10"/>
+  <text class="lbl" x="312" y="404" text-anchor="middle">Excel workbook</text>
+  <text class="note" x="312" y="423" text-anchor="middle">Test Calendar 2024.xlsx</text>
+
+  <rect class="b-purple" x="414" y="378" width="170" height="60" rx="10"/>
+  <text class="lbl" x="499" y="404" text-anchor="middle">SendGrid</text>
+  <text class="note" x="499" y="423" text-anchor="middle">@sendgrid/mail</text>
+
+  <!-- ===== Path 2: Google Apps Script (automated_reminder/) ===== -->
+  <rect class="group" x="620" y="96" width="356" height="362" rx="12"/>
+  <text class="glbl" x="636" y="118">GOOGLE APPS SCRIPT · automated_reminder/</text>
+
+  <rect class="b-purple" x="636" y="134" width="158" height="60" rx="10"/>
+  <text class="lbl" x="715" y="160" text-anchor="middle">Day timer</text>
+  <text class="note" x="715" y="179" text-anchor="middle">time-driven trigger</text>
+
+  <path class="edge" d="M715,194 V250" marker-end="url(#ah)"/>
+  <text class="elbl" x="723" y="226">once a day</text>
+
+  <rect class="b-green" x="668" y="254" width="276" height="64" rx="10"/>
+  <text class="lbl" x="806" y="281" text-anchor="middle">senderEmail()</text>
+  <text class="note" x="806" y="301" text-anchor="middle">date − today ≤ 2 days → mail</text>
+
+  <path class="edge" d="M715,318 V374" marker-end="url(#ah)"/>
+  <text class="elbl" x="723" y="343">sendEmail per</text>
+  <text class="elbl" x="723" y="357">address, col D on</text>
+
+  <path class="edge" d="M883,378 V322" marker-end="url(#ah)"/>
+  <text class="elbl" x="891" y="343">getValues()</text>
+  <text class="elbl" x="891" y="357">each run</text>
+
+  <rect class="b-purple" x="636" y="378" width="158" height="60" rx="10"/>
+  <text class="lbl" x="715" y="404" text-anchor="middle">MailApp</text>
+  <text class="note" x="715" y="423" text-anchor="middle">Google-hosted mailer</text>
+
+  <rect class="b-gray" x="806" y="378" width="154" height="60" rx="10"/>
+  <text class="lbl" x="883" y="404" text-anchor="middle">Google Sheet</text>
+  <text class="note" x="883" y="423" text-anchor="middle">Sheet1, a row per shift</text>
+
+  <!-- ===== Both paths end in the same place ===== -->
+  <path class="edge" d="M499,438 V516" marker-end="url(#ah)"/>
+  <text class="elbl" x="491" y="483" text-anchor="end">admin's subject + message</text>
+  <text class="elbl" x="491" y="497" text-anchor="end">to the recipients typed in</text>
+
+  <path class="edge" d="M715,438 V516" marker-end="url(#ah)"/>
+  <text class="elbl" x="723" y="483">"AggieHouse Reminder"</text>
+  <text class="elbl" x="723" y="497">fixed text + shift date</text>
+
+  <rect class="b-orange" x="440" y="520" width="340" height="60" rx="10"/>
+  <text class="lbl" x="610" y="546" text-anchor="middle">Volunteer inboxes</text>
+  <text class="note" x="610" y="565" text-anchor="middle">a separate email per address</text>
+
+  <!-- legend: what the colours mean -->
+  <rect class="b-blue" x="40" y="519" width="14" height="10" rx="2"/>
+  <text class="note" x="60" y="528">browser page</text>
+  <rect class="b-green" x="40" y="541" width="14" height="10" rx="2"/>
+  <text class="note" x="60" y="550">server / script code</text>
+  <rect class="b-gray" x="40" y="563" width="14" height="10" rx="2"/>
+  <text class="note" x="60" y="572">spreadsheet / database</text>
+  <rect class="b-purple" x="214" y="519" width="14" height="10" rx="2"/>
+  <text class="note" x="234" y="528">hosted service</text>
+  <rect class="b-orange" x="214" y="541" width="14" height="10" rx="2"/>
+  <text class="note" x="234" y="550">volunteers</text>
+</svg>
